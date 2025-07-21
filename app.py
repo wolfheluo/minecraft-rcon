@@ -51,6 +51,24 @@ def server_status():
     except Exception as e:
         return jsonify({"status": "offline", "error": str(e)})
 
+@app.route('/api/players')
+def get_players():
+    """獲取在線玩家列表的 API 端點"""
+    try:
+        with MCRcon(RCON_HOST, RCON_PASSWORD, port=RCON_PORT) as mcr:
+            response = mcr.command("list")
+            # 解析玩家列表
+            players = []
+            if response:
+                # 通常格式是: "There are X of a max of Y players online: player1, player2, player3"
+                if ":" in response:
+                    player_part = response.split(":")[-1].strip()
+                    if player_part and player_part != "":
+                        players = [name.strip() for name in player_part.split(",") if name.strip()]
+            return jsonify({"success": True, "players": players})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e), "players": []})
+
 @app.route('/api/execute', methods=['POST'])
 def execute_command():
     """API 端點用於執行指令"""

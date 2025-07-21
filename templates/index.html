@@ -176,12 +176,17 @@
             margin-bottom: 15px;
         }
 
-        .input-group input {
+        .input-group input, .input-group select {
             flex: 1;
             padding: 8px 12px;
             border: 2px solid #ddd;
             border-radius: 6px;
             font-size: 14px;
+        }
+
+        .input-group select {
+            background: white;
+            cursor: pointer;
         }
 
         .input-group button {
@@ -197,6 +202,21 @@
 
         .input-group button:hover {
             background: #5a67d8;
+        }
+
+        .refresh-btn {
+            background: #48cae4;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #023e8a;
         }
 
         @media (max-width: 768px) {
@@ -262,32 +282,41 @@
             <!-- 玩家管理面板 -->
             <div class="panel">
                 <h3>👥 玩家管理</h3>
+                <button class="refresh-btn" onclick="refreshPlayers()">🔄 刷新玩家列表</button>
                 <div class="player-management">
                     <div>
                         <h4>踢出玩家</h4>
                         <div class="input-group">
-                            <input type="text" id="kickPlayer" placeholder="玩家名稱">
+                            <select id="kickPlayerSelect">
+                                <option value="">選擇玩家...</option>
+                            </select>
                             <button onclick="kickPlayer()">踢出</button>
                         </div>
                     </div>
                     <div>
                         <h4>封鎖玩家</h4>
                         <div class="input-group">
-                            <input type="text" id="banPlayer" placeholder="玩家名稱">
+                            <select id="banPlayerSelect">
+                                <option value="">選擇玩家...</option>
+                            </select>
                             <button onclick="banPlayer()">封鎖</button>
                         </div>
                     </div>
                     <div>
                         <h4>給予OP權限</h4>
                         <div class="input-group">
-                            <input type="text" id="opPlayer" placeholder="玩家名稱">
+                            <select id="opPlayerSelect">
+                                <option value="">選擇玩家...</option>
+                            </select>
                             <button onclick="opPlayer()">給予OP</button>
                         </div>
                     </div>
                     <div>
                         <h4>移除OP權限</h4>
                         <div class="input-group">
-                            <input type="text" id="deopPlayer" placeholder="玩家名稱">
+                            <select id="deopPlayerSelect">
+                                <option value="">選擇玩家...</option>
+                            </select>
                             <button onclick="deopPlayer()">移除OP</button>
                         </div>
                     </div>
@@ -315,6 +344,11 @@
     </div>
 
     <script>
+        // 頁面載入時自動獲取玩家列表
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshPlayers();
+        });
+
         function sendCommand(command) {
             const form = document.getElementById('commandForm');
             const input = form.querySelector('input[name="command"]');
@@ -322,31 +356,76 @@
             form.submit();
         }
 
+        function refreshPlayers() {
+            fetch('/api/players')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updatePlayerDropdowns(data.players);
+                    } else {
+                        console.error('獲取玩家列表失敗:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('網路錯誤:', error);
+                });
+        }
+
+        function updatePlayerDropdowns(players) {
+            const dropdowns = ['kickPlayerSelect', 'banPlayerSelect', 'opPlayerSelect', 'deopPlayerSelect'];
+            
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                // 清空現有選項
+                dropdown.innerHTML = '<option value="">選擇玩家...</option>';
+                
+                // 添加玩家選項
+                players.forEach(player => {
+                    const option = document.createElement('option');
+                    option.value = player;
+                    option.textContent = player;
+                    dropdown.appendChild(option);
+                });
+            });
+        }
+
         function kickPlayer() {
-            const playerName = document.getElementById('kickPlayer').value;
+            const playerName = document.getElementById('kickPlayerSelect').value;
             if (playerName) {
                 sendCommand(`kick ${playerName}`);
+                document.getElementById('kickPlayerSelect').value = '';
+            } else {
+                alert('請選擇一個玩家');
             }
         }
 
         function banPlayer() {
-            const playerName = document.getElementById('banPlayer').value;
+            const playerName = document.getElementById('banPlayerSelect').value;
             if (playerName) {
                 sendCommand(`ban ${playerName}`);
+                document.getElementById('banPlayerSelect').value = '';
+            } else {
+                alert('請選擇一個玩家');
             }
         }
 
         function opPlayer() {
-            const playerName = document.getElementById('opPlayer').value;
+            const playerName = document.getElementById('opPlayerSelect').value;
             if (playerName) {
                 sendCommand(`op ${playerName}`);
+                document.getElementById('opPlayerSelect').value = '';
+            } else {
+                alert('請選擇一個玩家');
             }
         }
 
         function deopPlayer() {
-            const playerName = document.getElementById('deopPlayer').value;
+            const playerName = document.getElementById('deopPlayerSelect').value;
             if (playerName) {
                 sendCommand(`deop ${playerName}`);
+                document.getElementById('deopPlayerSelect').value = '';
+            } else {
+                alert('請選擇一個玩家');
             }
         }
 
@@ -360,6 +439,9 @@
                 }
             });
         });
+
+        // 每30秒自動刷新玩家列表
+        setInterval(refreshPlayers, 30000);
     </script>
 </body>
 </html>
