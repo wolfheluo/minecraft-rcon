@@ -32,7 +32,7 @@
 - Python 3.7 或更高版本
 - Minecraft 伺服器（已開啟 RCON）
 
-### 安裝步驟
+### 本地開發
 
 1. 克隆或下載此專案
 
@@ -49,6 +49,78 @@
    RCON_PORT=25575
    RCON_PASSWORD=你的RCON密碼
    ```
+
+4. 啟動開發伺服器：
+   ```bash
+   python app.py
+   ```
+
+### 生產環境部署
+
+1. 完成上述本地開發步驟 1-3
+
+2. 使用 Gunicorn 啟動（推薦）：
+   ```bash
+   # Linux/macOS
+   chmod +x start.sh
+   ./start.sh
+   
+   # 或直接使用 Gunicorn
+   gunicorn --config gunicorn.conf.py wsgi:application
+   ```
+   
+   ```cmd
+   REM Windows
+   start.bat
+   
+   REM 或直接使用 Gunicorn
+   gunicorn --config gunicorn.conf.py wsgi:application
+   ```
+
+3. 應用程式將在 `http://0.0.0.0:5020` 上運行
+
+### 除錯和故障排除
+
+#### 快速診斷
+使用除錯腳本來檢查您的設定：
+```bash
+python debug.py
+```
+
+#### 測試連線 API
+您也可以使用 API 端點來測試連線：
+```bash
+curl http://localhost:5020/api/test-connection
+```
+
+#### 常見問題
+
+**1. "signal only works in main thread" 錯誤**
+- ✅ 已修復：現在使用自定義 RCON 實作，避免多執行緒問題
+- 如果仍有問題，確保使用提供的 WSGI 配置
+
+**2. "無法連線到 Minecraft 伺服器" 錯誤**
+- 檢查 Minecraft 伺服器是否正在運行
+- 確認 RCON 在 `server.properties` 中已啟用
+- 檢查防火牆設定
+
+**3. "RCON 密碼錯誤" 錯誤**
+- 確認 `.env` 檔案中的 `RCON_PASSWORD` 與伺服器設定一致
+- 檢查 `server.properties` 中的 `rcon.password`
+
+**4. 連線逾時**
+- 檢查網路連線
+- 嘗試增加逾時設定
+- 確認伺服器回應正常
+
+#### 手動測試
+```bash
+# 測試基本連線
+python test_rcon.py
+
+# 測試特定指令
+python -c "from app import safe_rcon_command; print(safe_rcon_command('list'))"
+```
 
 4. 執行應用程式：
    ```bash
