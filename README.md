@@ -35,16 +35,19 @@
 ### 安裝步驟
 
 1. 克隆或下載此專案
+
 2. 安裝必要套件：
    ```bash
    pip install -r requirements.txt
    ```
 
-3. 修改 `app.py` 中的伺服器設定：
-   ```python
-   RCON_HOST = "你的伺服器IP"
-   RCON_PORT = 25575  # 你的 RCON 端口
-   RCON_PASSWORD = "你的RCON密碼"
+3. 設定環境變數：
+   - 複製 `.env.example` 為 `.env`
+   - 修改 `.env` 檔案中的伺服器設定：
+   ```
+   RCON_HOST=你的伺服器IP
+   RCON_PORT=25575
+   RCON_PASSWORD=你的RCON密碼
    ```
 
 4. 執行應用程式：
@@ -65,6 +68,37 @@ rcon.password=你的安全密碼
 ```
 
 重新啟動伺服器後，RCON 功能就會生效。
+
+## 環境變數配置
+
+本專案使用環境變數來保護敏感資訊。主要配置包括：
+
+| 變數名稱 | 說明 | 預設值 | 範例 |
+|---------|------|--------|------|
+| `RCON_HOST` | Minecraft 伺服器 IP 位址 | localhost | 192.168.1.100 |
+| `RCON_PORT` | RCON 連接埠 | 25575 | 25575 |
+| `RCON_PASSWORD` | RCON 密碼 | 無 | my_secure_password |
+
+### 環境變數設定方式
+
+1. **使用 .env 檔案**（推薦）:
+   ```bash
+   cp .env.example .env
+   # 編輯 .env 檔案設定您的值
+   ```
+
+2. **系統環境變數**:
+   ```bash
+   # Windows
+   set RCON_HOST=your.server.ip
+   set RCON_PORT=25575
+   set RCON_PASSWORD=your_password
+
+   # Linux/macOS
+   export RCON_HOST=your.server.ip
+   export RCON_PORT=25575
+   export RCON_PASSWORD=your_password
+   ```
 
 ## 使用方法
 
@@ -88,10 +122,12 @@ rcon.password=你的安全密碼
 
 ## 安全注意事項
 
-- 請確保 RCON 密碼足夠強壯
-- 建議只在私人網路中使用
-- 定期更新密碼
-- 不要將 RCON 端口暴露在公共網路上
+- **環境變數保護**: 敏感資訊（如 RCON 密碼）已移至 `.env` 檔案，不會被提交到版本控制
+- **密碼強度**: 請確保 RCON 密碼足夠強壯
+- **網路安全**: 建議只在私人網路中使用
+- **定期更新**: 定期更新密碼
+- **端口安全**: 不要將 RCON 端口暴露在公共網路上
+- **檔案權限**: 確保 `.env` 檔案的讀取權限僅限於必要的使用者
 
 ## API 端點
 
