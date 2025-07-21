@@ -3,445 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft RCON 管理控制台</title>
+    <title>Minecraft RCON 伺服器管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        .card {
             background: rgba(255, 255, 255, 0.95);
+            border: none;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
-
-        .header {
+        .status-online {
+            color: #28a745;
+        }
+        .status-offline {
+            color: #dc3545;
+        }
+        .player-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px;
             text-align: center;
-            margin-bottom: 40px;
         }
-
-        .header h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .panel {
-            background: #fff;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .panel h3 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.4em;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .action-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .action-btn.danger {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-        }
-
-        .action-btn.warning {
-            background: linear-gradient(135deg, #feca57, #ff9ff3);
-        }
-
-        .action-btn.success {
-            background: linear-gradient(135deg, #48cae4, #023e8a);
-        }
-
-        .custom-command {
-            margin-top: 20px;
-        }
-
-        .command-input {
+        .iframe-container {
+            position: relative;
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            transition: border-color 0.3s ease;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
         }
-
-        .command-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
+        .iframe-container iframe {
             width: 100%;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .output-panel {
-            grid-column: 1 / -1;
-            background: #1a1a1a;
-            color: #00ff00;
-            border-radius: 10px;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.4;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 2px solid #333;
-        }
-
-        .output-panel h3 {
-            color: #00ff00;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .player-management {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .input-group input, .input-group select {
-            flex: 1;
-            padding: 8px 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .input-group select {
-            background: white;
-            cursor: pointer;
-        }
-
-        .input-group button {
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
+            height: 100%;
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease;
         }
-
-        .input-group button:hover {
-            background: #5a67d8;
-        }
-
-        .refresh-btn {
-            background: #48cae4;
-            color: white;
+        .btn-gradient {
+            background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
+            color: white;
+            border-radius: 25px;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            color: white;
+        }
+        .stats-icon {
+            font-size: 2rem;
             margin-bottom: 10px;
-        }
-
-        .refresh-btn:hover {
-            background: #023e8a;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-actions {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            }
-            
-            .player-management {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #00ff00;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎮 Minecraft RCON 管理控制台</h1>
-            <p><span class="status-indicator"></span>伺服器連線狀態：線上</p>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-cube me-2"></i>Minecraft RCON 管理系統
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link btn btn-gradient px-4" href="#" onclick="showLoginModal()">
+                    <i class="fas fa-sign-in-alt me-2"></i>管理控制台
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- 伺服器狀態 -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-server stats-icon" id="serverIcon"></i>
+                        <h4>伺服器狀態</h4>
+                        <h2 id="serverStatus" class="mb-3">檢查中...</h2>
+                        <p id="serverInfo" class="text-muted"></p>
+                        <button class="btn btn-gradient btn-sm" onclick="checkServerStatus()">
+                            <i class="fas fa-refresh me-2"></i>重新檢查
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 在線玩家 -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users stats-icon"></i>
+                        <h4>在線玩家</h4>
+                        <h2 id="playerCount" class="mb-3">0</h2>
+                        <div id="playersList" class="d-flex flex-wrap justify-content-center">
+                            <!-- 玩家列表會在這裡顯示 -->
+                        </div>
+                        <button class="btn btn-gradient btn-sm" onclick="loadPlayers()">
+                            <i class="fas fa-refresh me-2"></i>重新載入
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="main-content">
-            <!-- 快速動作面板 -->
-            <div class="panel">
-                <h3>⚡ 快速動作</h3>
-                <div class="quick-actions">
-                    <button class="action-btn" onclick="sendCommand('list')">玩家列表</button>
-                    <button class="action-btn success" onclick="sendCommand('save-all')">保存世界</button>
-                    <button class="action-btn warning" onclick="sendCommand('weather clear')">晴天</button>
-                    <button class="action-btn" onclick="sendCommand('time set day')">設為白天</button>
-                    <button class="action-btn" onclick="sendCommand('time set night')">設為夜晚</button>
-                    <button class="action-btn danger" onclick="sendCommand('stop')">關閉伺服器</button>
-                </div>
-                
-                <div class="custom-command">
-                    <h4>自訂指令</h4>
-                    <form method="post" id="commandForm">
-                        <input type="text" name="command" class="command-input" placeholder="輸入 Minecraft 指令..." required>
-                        <button type="submit" class="submit-btn">執行指令</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 玩家管理面板 -->
-            <div class="panel">
-                <h3>👥 玩家管理</h3>
-                <button class="refresh-btn" onclick="refreshPlayers()">🔄 刷新玩家列表</button>
-                <div class="player-management">
-                    <div>
-                        <h4>踢出玩家</h4>
-                        <div class="input-group">
-                            <select id="kickPlayerSelect">
-                                <option value="">選擇玩家...</option>
-                            </select>
-                            <button onclick="kickPlayer()">踢出</button>
-                        </div>
+        <!-- 地圖 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-map me-2"></i>伺服器地圖</h4>
                     </div>
-                    <div>
-                        <h4>封鎖玩家</h4>
-                        <div class="input-group">
-                            <select id="banPlayerSelect">
-                                <option value="">選擇玩家...</option>
-                            </select>
-                            <button onclick="banPlayer()">封鎖</button>
+                    <div class="card-body p-0">
+                        <div class="iframe-container">
+                            <iframe src="http://165.154.226.233:8123/" title="Minecraft Server Map"></iframe>
                         </div>
-                    </div>
-                    <div>
-                        <h4>給予OP權限</h4>
-                        <div class="input-group">
-                            <select id="opPlayerSelect">
-                                <option value="">選擇玩家...</option>
-                            </select>
-                            <button onclick="opPlayer()">給予OP</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h4>移除OP權限</h4>
-                        <div class="input-group">
-                            <select id="deopPlayerSelect">
-                                <option value="">選擇玩家...</option>
-                            </select>
-                            <button onclick="deopPlayer()">移除OP</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h4>世界管理</h4>
-                    <div class="quick-actions">
-                        <button class="action-btn" onclick="sendCommand('difficulty peaceful')">和平模式</button>
-                        <button class="action-btn" onclick="sendCommand('difficulty easy')">簡單模式</button>
-                        <button class="action-btn" onclick="sendCommand('difficulty normal')">普通模式</button>
-                        <button class="action-btn" onclick="sendCommand('difficulty hard')">困難模式</button>
                     </div>
                 </div>
             </div>
-
-            <!-- 輸出面板 -->
-            {% if output %}
-            <div class="output-panel">
-                <h3>📡 伺服器回應</h3>
-                <pre>{{ output }}</pre>
-            </div>
-            {% endif %}
         </div>
     </div>
 
+    <!-- 登入模態框 -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-lock me-2"></i>管理員登入</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/login" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密碼</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="請輸入管理密碼" required>
+                        </div>
+                        <div id="loginError" class="alert alert-danger d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-gradient">登入</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 頁面載入時自動獲取玩家列表
-        document.addEventListener('DOMContentLoaded', function() {
-            refreshPlayers();
-        });
-
-        function sendCommand(command) {
-            const form = document.getElementById('commandForm');
-            const input = form.querySelector('input[name="command"]');
-            input.value = command;
-            form.submit();
-        }
-
-        function refreshPlayers() {
-            fetch('/api/players')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        updatePlayerDropdowns(data.players);
-                    } else {
-                        console.error('獲取玩家列表失敗:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('網路錯誤:', error);
-                });
-        }
-
-        function updatePlayerDropdowns(players) {
-            const dropdowns = ['kickPlayerSelect', 'banPlayerSelect', 'opPlayerSelect', 'deopPlayerSelect'];
-            
-            dropdowns.forEach(dropdownId => {
-                const dropdown = document.getElementById(dropdownId);
-                // 清空現有選項
-                dropdown.innerHTML = '<option value="">選擇玩家...</option>';
+        // 檢查伺服器狀態
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/server-status');
+                const data = await response.json();
                 
-                // 添加玩家選項
-                players.forEach(player => {
-                    const option = document.createElement('option');
-                    option.value = player;
-                    option.textContent = player;
-                    dropdown.appendChild(option);
-                });
-            });
-        }
-
-        function kickPlayer() {
-            const playerName = document.getElementById('kickPlayerSelect').value;
-            if (playerName) {
-                sendCommand(`kick ${playerName}`);
-                document.getElementById('kickPlayerSelect').value = '';
-            } else {
-                alert('請選擇一個玩家');
-            }
-        }
-
-        function banPlayer() {
-            const playerName = document.getElementById('banPlayerSelect').value;
-            if (playerName) {
-                sendCommand(`ban ${playerName}`);
-                document.getElementById('banPlayerSelect').value = '';
-            } else {
-                alert('請選擇一個玩家');
-            }
-        }
-
-        function opPlayer() {
-            const playerName = document.getElementById('opPlayerSelect').value;
-            if (playerName) {
-                sendCommand(`op ${playerName}`);
-                document.getElementById('opPlayerSelect').value = '';
-            } else {
-                alert('請選擇一個玩家');
-            }
-        }
-
-        function deopPlayer() {
-            const playerName = document.getElementById('deopPlayerSelect').value;
-            if (playerName) {
-                sendCommand(`deop ${playerName}`);
-                document.getElementById('deopPlayerSelect').value = '';
-            } else {
-                alert('請選擇一個玩家');
-            }
-        }
-
-        // 自動清空輸入框
-        document.querySelectorAll('.input-group input').forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const button = this.parentElement.querySelector('button');
-                    button.click();
-                    this.value = '';
+                const statusElement = document.getElementById('serverStatus');
+                const iconElement = document.getElementById('serverIcon');
+                const infoElement = document.getElementById('serverInfo');
+                
+                if (data.status === 'online') {
+                    statusElement.textContent = '在線';
+                    statusElement.className = 'mb-3 status-online';
+                    iconElement.className = 'fas fa-server stats-icon status-online';
+                    infoElement.textContent = data.players || '伺服器正常運行';
+                } else {
+                    statusElement.textContent = '離線';
+                    statusElement.className = 'mb-3 status-offline';
+                    iconElement.className = 'fas fa-server stats-icon status-offline';
+                    infoElement.textContent = data.error || '無法連接到伺服器';
                 }
-            });
+            } catch (error) {
+                console.error('檢查伺服器狀態失敗:', error);
+                const statusElement = document.getElementById('serverStatus');
+                statusElement.textContent = '檢查失敗';
+                statusElement.className = 'mb-3 status-offline';
+            }
+        }
+
+        // 載入玩家列表
+        async function loadPlayers() {
+            try {
+                const response = await fetch('/api/players');
+                const data = await response.json();
+                
+                const countElement = document.getElementById('playerCount');
+                const listElement = document.getElementById('playersList');
+                
+                if (data.success && data.players) {
+                    countElement.textContent = data.players.length;
+                    
+                    if (data.players.length > 0) {
+                        listElement.innerHTML = data.players.map(player => 
+                            `<div class="player-card">
+                                <i class="fas fa-user me-2"></i>${player}
+                            </div>`
+                        ).join('');
+                    } else {
+                        listElement.innerHTML = '<p class="text-muted">目前沒有玩家在線</p>';
+                    }
+                } else {
+                    countElement.textContent = '?';
+                    listElement.innerHTML = '<p class="text-danger">無法載入玩家列表</p>';
+                }
+            } catch (error) {
+                console.error('載入玩家列表失敗:', error);
+                document.getElementById('playerCount').textContent = '?';
+                document.getElementById('playersList').innerHTML = '<p class="text-danger">載入失敗</p>';
+            }
+        }
+
+        // 顯示登入模態框
+        function showLoginModal() {
+            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+            modal.show();
+        }
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+            loadPlayers();
+            
+            // 每30秒自動更新一次狀態
+            setInterval(() => {
+                checkServerStatus();
+                loadPlayers();
+            }, 30000);
         });
 
-        // 每30秒自動刷新玩家列表
-        setInterval(refreshPlayers, 30000);
+        // 檢查登入錯誤
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = '密碼錯誤，請重新輸入';
+            errorDiv.classList.remove('d-none');
+            showLoginModal();
+        }
     </script>
 </body>
 </html>

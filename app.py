@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for
 from mcrcon import MCRcon
 import json
 import datetime
@@ -9,10 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'minecraft-rcon-secret-key-2025')
 
 RCON_HOST = os.getenv('RCON_HOST', 'localhost')
 RCON_PORT = int(os.getenv('RCON_PORT', 25575))
 RCON_PASSWORD = os.getenv('RCON_PASSWORD', '')
+CONSOLE_PASSWORD = 'supernova'
 
 def log_command(command, response, error=None):
     """記錄指令執行日誌"""
@@ -26,11 +28,40 @@ def log_command(command, response, error=None):
     # 這裡可以將日誌寫入檔案或資料庫
     print(f"[{timestamp}] Command: {command}, Response: {response}")
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def index():
+    """首頁 - 顯示伺服器狀態和地圖"""
+    return render_template('index.html')
+
+@app.route('/console')
+def console():
+    """控制台頁面 - 需要密碼驗證"""
+    if not session.get('authenticated'):
+        return render_template('login.html')
+    return render_template('console.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    """處理登入驗證"""
+    password = request.form.get('password')
+    if password == CONSOLE_PASSWORD:
+        session['authenticated'] = True
+        return redirect(url_for('console'))
+    else:
+        return render_template('login.html', error="密碼錯誤")
+
+@app.route('/logout')
+def logout():
+    """登出"""
+    session.pop('authenticated', None)
+    return redirect(url_for('index'))
+
+@app.route('/rcon', methods=['POST'])
 def rcon_control():
     output = ""
-    if request.method == 'POST':
-        command = request.form['command']
+    command = request.form.get('command') or request.json.get('command')
+    
+    if command:
         try:
             with MCRcon(RCON_HOST, RCON_PASSWORD, port=RCON_PORT) as mcr:
                 response = mcr.command(command)
@@ -39,7 +70,11 @@ def rcon_control():
         except Exception as e:
             output = f"❌ 連線錯誤：{e}"
             log_command(command, "", str(e))
-    return render_template('index.html', output=output)
+    
+    if request.is_json:
+        return jsonify({"success": True, "response": output})
+    else:
+        return render_template('console.html', output=output)
 
 @app.route('/api/server-status')
 def server_status():
@@ -88,4 +123,4 @@ def execute_command():
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5020, debug=True)
+    app.run(host='0.0.0.0', port=5020, debug=False)
